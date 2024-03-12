@@ -1,0 +1,3 @@
+/Users/persist/Desktop/Code/basis_SFML/cmake-build-debug/CMakeFiles/basis_SFML.dir
+/Users/persist/Desktop/Code/basis_SFML/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/persist/Desktop/Code/basis_SFML/cmake-build-debug/CMakeFiles/rebuild_cache.dir
