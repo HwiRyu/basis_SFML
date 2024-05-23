@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 #include "scale.h"
+#include "one_variable_function.h"
+
 
 int main() {
     // 원하는 창의 크기
@@ -17,6 +19,8 @@ int main() {
 
     sf::VertexArray graph_1(sf::LineStrip);
     sf::VertexArray axes(sf::LineStrip);
+    sf::VertexArray function_1(sf::LineStrip);
+
 
     sf::Font font;
     if (!font.loadFromFile("/System/Library/Fonts/Monaco.ttf")) {
@@ -35,6 +39,10 @@ int main() {
     text_2.setPosition(initial_view.getCenter().x + width / 2 - 200, initial_view.getCenter().y - height / 2 + 40);
     text_2.setFillColor(sf::Color::Black);
 
+    sf::Text text_3("view_x: , view_y:", font, 12);
+    text_3.setPosition(initial_view.getCenter().x + width / 2 - 200, initial_view.getCenter().y - height / 2 + 60);
+    text_3.setFillColor(sf::Color::Black);
+
     sf::Clock clock;
     sf::Clock clock_t;
     sf::Time lastClickTime = sf::Time::Zero;
@@ -42,7 +50,11 @@ int main() {
     sf::Vector2f startPoint; // 초기 클릭 위치 저장
     sf::Time elapsedTime;
     int size = 10;
+    bool debug_mod = false;
 
+    if (debug_mod) {
+                initial_view.zoom(1.2f);
+        }
 
     // 이벤트 루프
     while (window.isOpen()) {
@@ -54,16 +66,23 @@ int main() {
             if (event.type == sf::Event::KeyPressed) {
                 switch (event.key.code) {
                     case sf::Keyboard::W:
-                        size += 5;
+                        // 확대축소할때 시야 중심으로 확대축소되게 하는 코드
+                        initial_view.move(sf::Vector2f (initial_view.getCenter().x/size, initial_view.getCenter().y/size));
+                        size += 1;
+                        window.setView(initial_view);
                         break;
                     case sf::Keyboard::S:
-                        size -= 5;
-                        break;
+                        if (size > 3) {
+                            initial_view.move(sf::Vector2f(-initial_view.getCenter().x / size,
+                                                           -initial_view.getCenter().y / size));
+                            size -= 1;
+                            window.setView(initial_view);
+                            break;
+                        }
                     default:
                         break;
-
                 }
-                size = (size < 5) ? 5 : ((size > 150.0) ? 150.0 : size);
+
             }
 
             if (event.type == sf::Event::MouseButtonPressed) {
@@ -98,21 +117,31 @@ int main() {
                            initial_view.getCenter().y - height / 2 + 20);
         text_2.setPosition(initial_view.getCenter().x + width / 2 - 200,
                            initial_view.getCenter().y - height / 2 + 40);
+        text_3.setPosition(initial_view.getCenter().x + width / 2 - 200,
+                           initial_view.getCenter().y - height / 2 + 60);
 
         //Text에 들어갈 문자
         text_1.setString("n = 0");
 
         text_2.setString("x:" + std::to_string(point_x) + "y:" + std::to_string(point_y));
 
+        text_3.setString("view_x:" + std::to_string(initial_view.getCenter().x/size) + "view_y:" +
+                         std::to_string(-initial_view.getCenter().y/size));
 
 
         //축에 관련된 것을 다루는 부분
 
         //축의 길이에 관여(창에 보이는 곳만 표현하기 위해)
-        double x_start = -width / 2 + fmod(width / 2, size) + initial_view.getCenter().x;
-        double x_end = width / 2 + fmod(width / 2, size) + initial_view.getCenter().x;
-        double y_start = -height / 2 + fmod(height / 2, size) + initial_view.getCenter().y;
-        double y_end = height / 2 + fmod(height / 2, size) + initial_view.getCenter().y;
+
+        double x_start = -width / 2
+                         + fmod(width / 2, size)
+                         + initial_view.getCenter().x
+                         - fmod(initial_view.getCenter().x, size);
+        double x_end = width / 2 + fmod(width / 2, size) + initial_view.getCenter().x - fmod(initial_view.getCenter().x, size);
+        double y_start = -height / 2 + fmod(height / 2, size) + initial_view.getCenter().y -
+                         fmod(initial_view.getCenter().y, size);
+        double y_end = height / 2 + fmod(height / 2, size) + initial_view.getCenter().y -
+                       fmod(initial_view.getCenter().y, size);
 
 
         //축
@@ -149,8 +178,12 @@ int main() {
         // 화면을 지우기
         window.clear(sf::Color::White);
 
+
+        origin_function_one(window, function_1, size, one_variable_function, x_start, x_end);
+
         window.draw(text_1);
         window.draw(text_2);
+        window.draw(text_3);
 
         window.draw(axes);
 
